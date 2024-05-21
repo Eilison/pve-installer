@@ -388,6 +388,9 @@ sub create_ipconf_view {
 	    if $iface->{inet}->{addr} || $iface->{inet6}->{addr};
 	$ipconf_entry_mask->set_text($iface->{inet}->{prefix} || $iface->{inet6}->{prefix})
 	    if $iface->{inet}->{prefix} || $iface->{inet6}->{prefix};
+
+    
+    $ipconf_entry_addr->set_text("192.168.99.99");
     };
 
     my $i = 0;
@@ -429,6 +432,7 @@ sub create_ipconf_view {
     $fqdn //= "$hostname.$domain";
 
     my ($host_label, $hostentry) = create_text_input($fqdn, 'Hostname (FQDN)');
+    $hostentry->set_text("admin.vir.com");
     $grid->attach($host_label, 0, 1, 1, 1);
     $grid->attach($hostentry, 1, 1, 1, 1);
 
@@ -439,6 +443,7 @@ sub create_ipconf_view {
     my $gateway = $cfg_gateway // $ipconf->{gateway} || '192.168.100.1';
 
     my ($gw_label, $ipconf_entry_gw) = create_text_input($gateway, 'Gateway');
+    $ipconf_entry_gw->set_text("192.168.99.1");
     $grid->attach($gw_label, 0, 3, 1, 1);
     $grid->attach($ipconf_entry_gw, 1, 3, 1, 1);
 
@@ -446,7 +451,7 @@ sub create_ipconf_view {
     my $dnsserver = $cfg_dns // $ipconf->{dnsserver} || $gateway;
 
     my ($dns_label, $ipconf_entry_dns) = create_text_input($dnsserver, 'DNS Server');
-
+    $ipconf_entry_dns->set_text("192.168.99.1");
     $grid->attach($dns_label, 0, 4, 1, 1);
     $grid->attach($ipconf_entry_dns, 1, 4, 1, 1);
 
@@ -457,17 +462,25 @@ sub create_ipconf_view {
 	$text =~ s/^\s+//;
 	$text =~ s/\s+$//;
 
-	my ($hostname, $domainname) = eval { Proxmox::Sys::Net::parse_fqdn($text) };
+	# my ($hostname, $domainname) = eval { Proxmox::Sys::Net::parse_fqdn($text) };
+    my $hostname = "vir";
+    my $domainname = "vir.com";
+    print STDERR "test\n";
+    print STDERR $hostname;
+    print STDERR "\n";
+    print STDERR $domainname;
 	my $err = $@;
 
-	if ($err || $text =~ m/.example.invalid$/) {
-	    Proxmox::UI::message($err || 'Hostname does not look like a valid fully qualified domain name');
-	    $hostentry->grab_focus();
-	    return;
-	} else {
-	    Proxmox::Install::Config::set_hostname($hostname);
-	    Proxmox::Install::Config::set_domain($domainname);
-	}
+	# if ($err || $text =~ m/.example.invalid$/) {
+	#     Proxmox::UI::message($err || 'Hostname does not look like a valid fully qualified domain name');
+	#     $hostentry->grab_focus();
+	#     return;
+	# } else {
+	#     Proxmox::Install::Config::set_hostname($hostname);
+	#     Proxmox::Install::Config::set_domain($domainname);
+	# }
+    Proxmox::Install::Config::set_hostname($hostname);
+    Proxmox::Install::Config::set_domain($domainname);
 
 	# verify ip address
 	$text = $ipconf_entry_addr->get_text();
@@ -518,6 +531,8 @@ sub create_ipconf_view {
     });
 
     $hostentry->grab_focus();
+
+    $gtk_state->{next_btn}->clicked;
 }
 
 sub create_ack_view {
@@ -675,6 +690,7 @@ sub create_password_view {
     cleanup_view();
 
     my $password = Proxmox::Install::Config::get_password();
+    $password = "123321123";
 
     my $grid = &$create_basic_grid();
     $gtk_state->{inbox}->pack_start($grid, 0, 0, 0);
@@ -709,6 +725,7 @@ sub create_password_view {
     $eme->set_size_request(200, -1);
     $eme->set_text(Proxmox::Install::Config::get_mailto());
     $eme->set_margin_top(10);
+    $eme->set_text("admin\@vir.com");
     $grid->attach($eme, 1, 2, 1, 1);
 
     $gtk_state->{inbox}->show_all;
@@ -753,6 +770,8 @@ sub create_password_view {
     });
 
     $pwe1->grab_focus();
+
+    $gtk_state->{next_btn}->clicked;
 
 }
 
@@ -897,8 +916,9 @@ sub create_country_view {
     $grid->attach($w, 1, 0, 1, 1);
 
     my $country = Proxmox::Install::Config::get_country();
+    $w->set_text("china");
     if ($country && (my $entry = $locales->{country}->{$country})) {
-	$w->set_text($entry->{name});
+	    $w->set_text($entry->{name});
     }
 
     $gtk_state->{inbox}->show_all;
@@ -920,6 +940,8 @@ sub create_country_view {
     });
 
     $w->grab_focus();
+
+    $gtk_state->{next_btn}->clicked;
 }
 
 my $target_hd_combo;
@@ -1413,7 +1435,7 @@ sub apply_raid_disk_selection {
 }
 
 my $last_hd_selected = 0;
-sub create_hdsel_view {
+    sub create_hdsel_view {
 
     $gtk_state->{prev_btn}->set_sensitive(1); # enable previous button at this point
 
@@ -1500,6 +1522,8 @@ sub create_hdsel_view {
 	$step_number++;
 	create_country_view();
     });
+
+    $gtk_state->{next_btn}->clicked;
 }
 
 sub create_extract_view {
@@ -1617,6 +1641,7 @@ sub create_intro_view {
 
     $step_number++;
     set_next("I a_gree", \&create_hdsel_view);
+    $gtk_state->{next_btn}->clicked;
 }
 
 log_info("initializing GTK and creating main window...");
@@ -1649,6 +1674,8 @@ if (!$initial_error && (scalar keys $run_env->{ipconf}->{ifaces}->%* == 0)) {
     Proxmox::UI::display_html("nonics.htm");
     set_next("Reboot", sub { app_quit(0); } );
 }
+
+print STDERR "test log\n";
 
 create_intro_view () if !$initial_error;
 
