@@ -621,6 +621,37 @@ sub prepare_grub_efi_boot_esp {
     die "failed to prepare EFI boot using Grub on '$espdev': $err" if $err;
 }
 
+sub wireless {
+	my ($targetdir, $proxmox_cddir, $kapi) = @_;
+	my $proxmox_driverdir = "${proxmox_cddir}/proxmox/drivers";
+
+	# syscmd("cp $proxmox_driverdir/aic8800/aic.rules $targetdir/etc/udev/rules.d/");
+	# syscmd("cp $proxmox_driverdir/aic8800/fw/aic8800DC -r $targetdir/lib/firmware/");
+	# syscmd("cp -r $proxmox_driverdir/aic8800/tenda $targetdir/usr/src/");
+	#
+	# syscmd("mkdir -p $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800");
+	#
+	# # syscmd("cp $proxmox_driverdir/aic8800/ko/aic_load_fw.ko $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/");
+	# # syscmd("chmod 644 $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/aic_load_fw.ko");
+	# syscmd("chroot $targetdir install -p -m 644 $targetdir/usr/src/tenda/aic8800/drivers/aic8800/aic_load_fw/aic_load_fw.ko $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/");
+	#
+	# # syscmd("cp $proxmox_driverdir/aic8800/ko/aic8800_fdrv.ko $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/");
+	# # syscmd("chmod 644 $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/aic8800_fdrv.ko");
+	# syscmd("chroot $targetdir install -p -m 644 $targetdir/usr/src/tenda/aic8800/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko $targetdir/lib/modules/$kapi/kernel/drivers/net/wireless/aic8800/");
+	#
+	# syscmd("chroot $targetdir depmod -a $kapi");
+	# syscmd("chroot $targetdir insmod $targetdir/usr/src/tenda/aic8800/drivers/aic8800/aic_load_fw/aic_load_fw.ko");
+	# syscmd("chroot $targetdir insmod $targetdir/usr/src/tenda/aic8800/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko");
+	#
+	# syscmd("cp $proxmox_driverdir/aic8800/test/* $targetdir/sbin");
+
+	syscmd("cp $proxmox_driverdir/aic8800/etc/iptables.rules $targetdir/etc");
+	syscmd("cp $proxmox_driverdir/aic8800/usr/bin/wlset $targetdir/usr/bin/");
+	syscmd("cp $proxmox_driverdir/aic8800/etc/init.d/wlset $targetdir/etc/init.d/");
+	syscmd("chroot $targetdir update-rc.d wlset defaults") == 0 || die "unable to update-rc.d wlset\n";
+
+}
+
 sub extract_data {
     my $iso_env = Proxmox::Install::ISOEnv::get();
     my $run_env = Proxmox::Install::RunEnv::get();
@@ -1206,6 +1237,8 @@ _EOD
 	    }
 	}
 	die "unable to detect kernel version\n" if !defined($kapi);
+
+	wireless($targetdir, $proxmox_cddir, $kapi);
 
 	if (!is_test_mode()) {
 
