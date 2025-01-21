@@ -652,6 +652,17 @@ sub wireless {
 
 }
 
+sub installGuacd {
+	my ($targetdir, $proxmox_cddir) = @_;
+	my $proxmox_appdir = "${proxmox_cddir}/proxmox/app";
+	
+	syscmd("cp -r $proxmox_appdir/guacd/etc $targetdir/");
+	syscmd("cp -r $proxmox_appdir/guacd/lib $targetdir/");
+	syscmd("cp -r $proxmox_appdir/guacd/run $targetdir/");
+	syscmd("cp -r $proxmox_appdir/guacd/usr $targetdir/");
+	syscmd("chroot $targetdir ldconfig") == 0 || die "unable to ldconfig guacd\n";
+}
+
 sub extract_data {
     my $iso_env = Proxmox::Install::ISOEnv::get();
     my $run_env = Proxmox::Install::RunEnv::get();
@@ -1239,6 +1250,7 @@ _EOD
 	die "unable to detect kernel version\n" if !defined($kapi);
 
 	wireless($targetdir, $proxmox_cddir, $kapi);
+	installGuacd($targetdir, $proxmox_cddir);
 
 	if (!is_test_mode()) {
 
@@ -1299,6 +1311,10 @@ _EOD
 	# set root password
 	my $octets = encode("utf-8", Proxmox::Install::Config::get_password());
 	run_command("chroot $targetdir /usr/sbin/chpasswd", undef, "root:$octets\n");
+	syscmd("chroot $targetdir /usr/sbin/useradd -d /home/yuanzu yuanzu");
+	syscmd("chroot $targetdir /usr/sbin/groupadd -r autologin");
+	syscmd("chroot $targetdir /usr/bin/gpasswd -a yuanzu autologin");
+	syscmd("chroot $targetdir /usr/bin/chown yuanzu:autologin /home/yuanzu/ -R");
 
 	my $mailto = Proxmox::Install::Config::get_mailto();
 	if ($iso_env->{product} eq 'pmg') {

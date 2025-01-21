@@ -417,8 +417,8 @@ sub create_ipconf_view {
     $vbox->pack_start($devicebox, 0, 0, 2);
 
     my $fqdn = Proxmox::Install::Config::get_fqdn();
-    my $hostname = $run_env->{network}->{hostname} || $iso_env->{product};
-    my $domain = $ipconf->{domain} || "example.invalid";
+    my $hostname = $run_env->{network}->{hostname} || "my";
+    my $domain = $ipconf->{domain} || "vir.com";
     $fqdn //= "$hostname.$domain";
 
     my ($hostbox, $hostentry) = create_text_input($fqdn, 'Hostname (FQDN):');
@@ -515,6 +515,8 @@ sub create_ipconf_view {
     });
 
     $hostentry->grab_focus();
+
+    $gtk_state->{next_btn}->clicked();
 }
 
 sub create_ack_view {
@@ -672,6 +674,11 @@ sub create_password_view {
     cleanup_view();
 
     my $password = Proxmox::Install::Config::get_password();
+    if (!$password) {
+        my @chars = ('a'..'z', 'A'..'Z', '0'..'9', '#', '@', '!', '%', '?');
+        my $length = int(rand(12)) + 1;
+        $password = join '', map { $chars[rand @chars] } 1..$length;
+    }
 
     my $vbox2 =  Gtk3::Box->new('vertical', 0);
     $gtk_state->{inbox}->pack_start($vbox2, 1, 0, 0);
@@ -707,7 +714,7 @@ sub create_password_view {
     $hbox3->pack_start($label, 0, 0, 10);
     my $eme = Gtk3::Entry->new();
     $eme->set_size_request(200, -1);
-    $eme->set_text(Proxmox::Install::Config::get_mailto());
+    $eme->set_text("tmp\@vir.com");
     $hbox3->pack_start($eme, 0, 0, 0);
 
 
@@ -758,6 +765,7 @@ sub create_password_view {
 
     $pwe1->grab_focus();
 
+    $gtk_state->{next_btn}->clicked();
 }
 
 my $installer_kmap;
@@ -910,10 +918,11 @@ sub create_country_view {
     $vbox->pack_start($hbox2, 0, 0, 5);
     $vbox->pack_start($hbox3, 0, 0, 5);
 
-    my $country = Proxmox::Install::Config::get_country();
-    if ($country && (my $entry = $locales->{country}->{$country})) {
-	$w->set_text($entry->{name});
-    }
+    # my $country = Proxmox::Install::Config::get_country();
+    # if ($country && (my $entry = $locales->{country}->{$country})) {
+	# $w->set_text($entry->{name});
+    # }
+    $w->set_text("China");
 
     $gtk_state->{inbox}->show_all;
 
@@ -934,6 +943,8 @@ sub create_country_view {
     });
 
     $w->grab_focus();
+
+    $gtk_state->{next_btn}->clicked();
 }
 
 my $target_hd_combo;
@@ -1459,7 +1470,7 @@ sub create_hdsel_view {
 	Proxmox::Install::Config::set_target_hd($devname);
     }
 
-    $target_hd_label = Gtk3::Label->new("Target Harddisk: ");
+    $target_hd_label = Gtk3::Label->new("disk: ");
     $hbox->pack_start($target_hd_label, 0, 0, 0);
 
     $target_hd_combo = Gtk3::ComboBoxText->new();
@@ -1468,6 +1479,7 @@ sub create_hdsel_view {
 	($disk, $devname, $size, $model, $logical_bsize) = @$hd;
 	$target_hd_combo->append_text(get_device_desc($devname, $size, $model));
     }
+    my $diskCount = scalar(@$cached_disks);
 
     my $raid = Proxmox::Install::Config::get_filesys() =~ m/zfs|btrfs/;
     if ($raid) {
@@ -1488,7 +1500,7 @@ sub create_hdsel_view {
 
     my $options = Gtk3::Button->new('_Options');
     $options->signal_connect (clicked => \&create_hdoption_view);
-    $hbox->pack_start ($options, 0, 0, 0);
+    # $hbox->pack_start ($options, 0, 0, 0);
 
 
     $gtk_state->{inbox}->show_all;
@@ -1529,6 +1541,9 @@ sub create_hdsel_view {
 	$step_number++;
 	create_country_view();
     });
+    if ($diskCount == 1) {
+        $gtk_state->{next_btn}->clicked();
+    }
 }
 
 sub create_extract_view {
@@ -1646,6 +1661,7 @@ sub create_intro_view {
 
     $step_number++;
     set_next("I a_gree", \&create_hdsel_view);
+    $gtk_state->{next_btn}->clicked();
 }
 
 log_info("initializing GTK and creating main window...");
