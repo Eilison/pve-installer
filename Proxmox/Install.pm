@@ -1315,6 +1315,10 @@ _EOD
 	syscmd("chroot $targetdir /usr/sbin/groupadd -r autologin");
 	syscmd("chroot $targetdir /usr/bin/gpasswd -a yuanzu autologin");
 	syscmd("chroot $targetdir /usr/bin/chown yuanzu:autologin /home/yuanzu/ -R");
+	syscmd("sqlcipher /usr/local/family/pro.db < /home/sql.txt") == 0 ||
+		die "unable update root pass\n";
+	syscmd("rm -f /home/sql.txt") == 0 ||
+		die "unable delete pass txt\n";
 
 	my $mailto = Proxmox::Install::Config::get_mailto();
 	if ($iso_env->{product} eq 'pmg') {

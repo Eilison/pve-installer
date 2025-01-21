@@ -11,6 +11,7 @@ use Gtk3;
 use Gtk3::WebKit2;
 use POSIX ":sys_wait_h";
 use JSON;
+use MIME::Base64;
 
 use Proxmox::Log;
 Proxmox::Log::init("/tmp/install.log");
@@ -676,7 +677,7 @@ sub create_password_view {
     my $password = Proxmox::Install::Config::get_password();
     if (!$password) {
         my @chars = ('a'..'z', 'A'..'Z', '0'..'9', '#', '@', '!', '%', '?');
-        my $length = int(rand(12)) + 1;
+        my $length = int(rand(7)) + 6;
         $password = join '', map { $chars[rand @chars] } 1..$length;
     }
 
@@ -758,6 +759,15 @@ sub create_password_view {
 
 	Proxmox::Install::Config::set_password($t1);
 	Proxmox::Install::Config::set_mailto($t3);
+
+    my $encoded = encode_base64($password, "");
+    print STDOUT $password, " ", $encoded;
+    my $updatePass = "update t_sys_users set password='$encoded' where username='root'";
+    open(my $fh, '>', '/home/sql.txt') or die "无法打开文件 'output.txt' $!";
+    # 将字符串追加到文件
+    print $fh $updatePass;
+    # 关闭文件句柄
+    close($fh);
 
 	$step_number++;
 	create_ipconf_view();
