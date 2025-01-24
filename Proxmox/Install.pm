@@ -656,11 +656,28 @@ sub installGuacd {
 	my ($targetdir, $proxmox_cddir) = @_;
 	my $proxmox_appdir = "${proxmox_cddir}/proxmox/app";
 	
-	syscmd("cp -r $proxmox_appdir/guacd/etc $targetdir/");
-	syscmd("cp -r $proxmox_appdir/guacd/lib $targetdir/");
-	syscmd("cp -r $proxmox_appdir/guacd/run $targetdir/");
+	syscmd("cp -r $proxmox_appdir/guacd/etc/guacamole $targetdir/etc/");
+	syscmd("cp $proxmox_appdir/guacd/etc/init.d/guacd $targetdir/etc/init.d/");
+	syscmd("cp -r $proxmox_appdir/guacd/etc/ld.so.conf.d $targetdir/etc/");
+	syscmd("chroot $targetdir ln -s /usr/lib/systemd/system/nginx.service /etc/systemd/system/multi-user.target.wants/nginx.service");
+	# syscmd("cp -r $proxmox_appdir/guacd/etc/systemd $targetdir/etc/");
+	syscmd("cp $proxmox_appdir/guacd/lib/systemd/system/guacd.service $targetdir/lib/systemd/system/");
+	syscmd("cp -r $proxmox_appdir/guacd/run/systemd $targetdir/run/");
 	syscmd("cp -r $proxmox_appdir/guacd/usr $targetdir/");
 	syscmd("chroot $targetdir ldconfig") == 0 || die "unable to ldconfig guacd\n";
+	syscmd("chroot $targetdir systemctl enable guacd") == 0 || die "unable to enable guacd\n";
+}
+
+sub prodb {
+	my ($targetdir, $proxmox_cddir) = @_;
+	my $proxmox_appdir = "${proxmox_cddir}/proxmox/app";
+
+	syscmd("mkdir -p $targetdir/usr/local/family");
+	syscmd("cp $proxmox_appdir/family/pro.db $targetdir/usr/local/family/");
+	syscmd("sqlcipher $targetdir/usr/local/family/pro.db < /home/sql.txt") == 0 ||
+		die "unable update root pass\n";
+	syscmd("rm -f /home/sql.txt") == 0 ||
+		die "unable delete pass txt\n";
 }
 
 sub extract_data {
@@ -1315,10 +1332,8 @@ _EOD
 	syscmd("chroot $targetdir /usr/sbin/groupadd -r autologin");
 	syscmd("chroot $targetdir /usr/bin/gpasswd -a yuanzu autologin");
 	syscmd("chroot $targetdir /usr/bin/chown yuanzu:autologin /home/yuanzu/ -R");
-	syscmd("sqlcipher /usr/local/family/pro.db < /home/sql.txt") == 0 ||
-		die "unable update root pass\n";
-	syscmd("rm -f /home/sql.txt") == 0 ||
-		die "unable delete pass txt\n";
+
+	prodb($targetdir, $proxmox_cddir);
 
 	my $mailto = Proxmox::Install::Config::get_mailto();
 	if ($iso_env->{product} eq 'pmg') {
