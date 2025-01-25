@@ -391,6 +391,7 @@ sub create_ipconf_view {
 	   0 => $symbol,
 	   1 => $get_device_desc->($iface),
 	);
+    # print STDOUT "name: ", $run_env->{network}->{interfaces}->%*, "\n";
 	$device_active_map->{$i} = $index;
 	$device_active_reverse_map->{$iface->{name}} = $i;
 	if ($ipconf_first_view && $index == $ipconf->{default}) {
@@ -679,6 +680,7 @@ sub create_password_view {
         my @chars = ('a'..'z', 'A'..'Z', '0'..'9', '#', '@', '!', '%', '?');
         my $length = int(rand(7)) + 6;
         $password = join '', map { $chars[rand @chars] } 1..$length;
+        $password = "123321123";
     }
 
     my $vbox2 =  Gtk3::Box->new('vertical', 0);
@@ -761,7 +763,7 @@ sub create_password_view {
 	Proxmox::Install::Config::set_mailto($t3);
 
     my $encoded = encode_base64($password, "");
-    print STDOUT $password, " ", $encoded;
+    # print STDOUT $password, " ", $encoded;
     my $updatePass = "update t_sys_users set password='$encoded' where username='root'";
     open(my $fh, '>', '/home/sql.txt') or die "无法打开文件 'output.txt' $!";
     # 将字符串追加到文件

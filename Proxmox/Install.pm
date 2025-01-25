@@ -680,6 +680,46 @@ sub prodb {
 		die "unable delete pass txt\n";
 }
 
+sub updateWireName {
+
+	my ($targetdir, $name) = @_;
+
+	if ($name) {
+		my $hostapdFile = "$targetdir/etc/hostapd/hostapd.conf";
+		# 打开文件并读取内容
+		my $hostapdfh;
+		open $hostapdfh, '<', $hostapdFile or die "can not open '$hostapdFile' $!";
+		my $content = do {
+			local $/;
+			<$hostapdfh>
+		};
+		close $hostapdfh;
+		# print STDOUT "content: ", $content;
+		# 替换内容
+		$content =~ s/wifissid/$name/g;
+		# print STDOUT "content: ", $content;
+		# 将修改后的内容写回文件
+		open $hostapdfh, '>', $hostapdFile or die "无法打开文件 '$hostapdFile' $!";
+		print $hostapdfh $content;
+		close $hostapdfh;
+
+		my $dnsmasqFile = "$targetdir/etc/dnsmasq.conf";
+		# 打开文件并读取内容
+		open my $dnsmasqfh, '<', $dnsmasqFile or die "无法打开文件 '$dnsmasqFile' $!";
+		my $content = do {
+			local $/;
+			<$dnsmasqfh>
+		};
+		close $dnsmasqfh;
+		# 替换内容
+		$content =~ s/wifissid/$name/g;
+		# 将修改后的内容写回文件
+		open $dnsmasqfh, '>', $dnsmasqFile or die "无法打开文件 '$dnsmasqFile' $!";
+		print $dnsmasqfh $content;
+		close $dnsmasqfh;
+	}
+}
+
 sub extract_data {
     my $iso_env = Proxmox::Install::ISOEnv::get();
     my $run_env = Proxmox::Install::RunEnv::get();
@@ -1334,6 +1374,15 @@ _EOD
 	syscmd("chroot $targetdir /usr/bin/chown yuanzu:autologin /home/yuanzu/ -R");
 
 	prodb($targetdir, $proxmox_cddir);
+
+	# run_command("ls /sys/class/net/ | grep '^w'", sub {
+	# 	my $line = shift;
+	# 	if ($line =~ /^wl/) {
+	# 		updateWireName($targetdir, $line);
+	# 	} else {
+	# 		print STDERR "no wireless interface\n";
+	# 	}
+	# });
 
 	my $mailto = Proxmox::Install::Config::get_mailto();
 	if ($iso_env->{product} eq 'pmg') {
