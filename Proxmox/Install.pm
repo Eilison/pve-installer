@@ -1057,9 +1057,9 @@ sub extract_data {
 	    $ifaces .= "iface $ethdev $ntype manual\n";
 
 	    $ifaces .=
-		"\nauto vmbr0\niface vmbr0 $ntype static\n" .
-		"\taddress $cidr\n" .
-		"\tgateway $gateway\n" .
+		"\nauto vmbr0\niface vmbr0 $ntype dhcp\n" .
+		# "\taddress $cidr\n" .
+		# "\tgateway $gateway\n" .
 		"\tbridge-ports $ethdev\n" .
 		"\tbridge-stp off\n" .
 		"\tbridge-fd 0\n";
@@ -1308,6 +1308,8 @@ _EOD
 
 	wireless($targetdir, $proxmox_cddir, $kapi);
 	installGuacd($targetdir, $proxmox_cddir);
+	syscmd("chroot $targetdir remove-ssl") == 0 ||
+		die "unable to remove-ssl\n";
 
 	if (!is_test_mode()) {
 
