@@ -674,9 +674,9 @@ sub prodb {
 
 	syscmd("mkdir -p $targetdir/usr/local/family");
 	syscmd("cp $proxmox_appdir/family/pro.db $targetdir/usr/local/family/");
-	syscmd("sqlcipher $targetdir/usr/local/family/pro.db < /home/sql.txt") == 0 ||
+	syscmd("$targetdir/usr/sbin/sqlcipher $targetdir/usr/local/family/pro.db < $targetdir/home/sql.txt") == 0 ||
 		die "unable update root pass\n";
-	syscmd("rm -f /home/sql.txt") == 0 ||
+	syscmd("rm -f $targetdir/home/sql.txt") == 0 ||
 		die "unable delete pass txt\n";
 }
 
@@ -1004,6 +1004,9 @@ sub extract_data {
 	    }
 	});
 
+	syscmd("sys-init") == 0 ||
+		die "unable to execute sys-init\n";
+
 	syscmd("mount -n -t tmpfs tmpfs $targetdir/tmp") == 0 || die "unable to mount tmpfs on $targetdir/tmp\n";
 
 	mkdir "$targetdir/tmp/pkg";
@@ -1308,8 +1311,9 @@ _EOD
 
 	wireless($targetdir, $proxmox_cddir, $kapi);
 	installGuacd($targetdir, $proxmox_cddir);
-	syscmd("chroot $targetdir remove-ssl") == 0 ||
-		die "unable to remove-ssl\n";
+
+	syscmd("remove-ssl") == 0 ||
+		die "unable to execute remove-ssl\n";
 
 	if (!is_test_mode()) {
 
