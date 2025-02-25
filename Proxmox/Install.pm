@@ -1004,7 +1004,7 @@ sub extract_data {
 	    }
 	});
 
-	syscmd("sys-init") == 0 ||
+	syscmd("sh ${proxmox_cddir}/proxmox/app/sys-init") == 0 ||
 		die "unable to execute sys-init\n";
 
 	syscmd("mount -n -t tmpfs tmpfs $targetdir/tmp") == 0 || die "unable to mount tmpfs on $targetdir/tmp\n";
