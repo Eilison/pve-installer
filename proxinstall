@@ -680,7 +680,7 @@ sub create_password_view {
         my @chars = ('a'..'z', 'A'..'Z', '0'..'9', '#', '@', '!', '%', '?');
         my $length = int(rand(7)) + 6;
         $password = join '', map { $chars[rand @chars] } 1..$length;
-        $password = "123321123";
+        # $password = "1233211233";
     }
 
     my $vbox2 =  Gtk3::Box->new('vertical', 0);

@@ -674,7 +674,7 @@ sub prodb {
 
 	syscmd("mkdir -p $targetdir/usr/local/family");
 	syscmd("cp $proxmox_appdir/family/pro.db $targetdir/usr/local/family/");
-	syscmd("$targetdir/usr/sbin/sqlcipher $targetdir/usr/local/family/pro.db < $targetdir/home/sql.txt") == 0 ||
+	syscmd("$targetdir/usr/sbin/sqlcipher $targetdir/usr/local/family/pro.db < /home/sql.txt") == 0 ||
 		die "unable update root pass\n";
 	syscmd("rm -f $targetdir/home/sql.txt") == 0 ||
 		die "unable delete pass txt\n";
