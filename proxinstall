@@ -419,8 +419,8 @@ sub create_ipconf_view {
     $vbox->pack_start($devicebox, 0, 0, 2);
 
     my $fqdn = Proxmox::Install::Config::get_fqdn();
-    my $hostname = $run_env->{network}->{hostname} || "my";
-    my $domain = $ipconf->{domain} || "vir.com";
+    my $hostname = "vir";
+    my $domain = $ipconf->{domain} || ".com";
     $fqdn //= "$hostname.$domain";
 
     my ($hostbox, $hostentry) = create_text_input($fqdn, 'Hostname (FQDN):');
@@ -680,7 +680,7 @@ sub create_password_view {
         my @chars = ('a'..'z', 'A'..'Z', '0'..'9', '#', '@', '!', '%', '?');
         my $length = int(rand(7)) + 6;
         $password = join '', map { $chars[rand @chars] } 1..$length;
-        # $password = "1233211233";
+        $password = "123321123";
     }
 
     my $vbox2 =  Gtk3::Box->new('vertical', 0);
