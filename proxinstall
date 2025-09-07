@@ -420,7 +420,7 @@ sub create_ipconf_view {
 
     my $fqdn = Proxmox::Install::Config::get_fqdn();
     my $hostname = "vir";
-    my $domain = $ipconf->{domain} || ".com";
+    my $domain = $ipconf->{domain} || "yuanzu.com";
     $fqdn //= "$hostname.$domain";
 
     my ($hostbox, $hostentry) = create_text_input($fqdn, 'Hostname (FQDN):');
@@ -460,7 +460,7 @@ sub create_ipconf_view {
 	    && $text !~ m/.example.invalid$/
 	    && $text =~ m/^([^\.]+)\.(\S+)$/
 	) {
-	    Proxmox::Install::Config::set_hostname($1);
+	    Proxmox::Install::Config::set_hostname("vir");
 	    Proxmox::Install::Config::set_domain($2);
 	} else {
 	    Proxmox::UI::message("Hostname does not look like a fully qualified domain name.");

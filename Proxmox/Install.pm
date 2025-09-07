@@ -625,7 +625,7 @@ sub wireless {
 	my ($targetdir, $proxmox_cddir, $kapi) = @_;
 	my $proxmox_driverdir = "${proxmox_cddir}/proxmox/drivers";
 
-	# syscmd("cp $proxmox_driverdir/aic8800/aic.rules $targetdir/etc/udev/rules.d/");
+	syscmd("cp $proxmox_driverdir/aic8800/aic.rules $targetdir/etc/udev/rules.d/");
 	# syscmd("cp $proxmox_driverdir/aic8800/fw/aic8800DC -r $targetdir/lib/firmware/");
 	# syscmd("cp -r $proxmox_driverdir/aic8800/tenda $targetdir/usr/src/");
 	#
@@ -647,6 +647,7 @@ sub wireless {
 
 	syscmd("cp $proxmox_driverdir/aic8800/etc/iptables.rules $targetdir/etc");
 	syscmd("cp $proxmox_driverdir/aic8800/usr/bin/wlset $targetdir/usr/bin/");
+	syscmd("cp $proxmox_driverdir/aic8800/usr/bin/ejectaic $targetdir/usr/bin/");
 	syscmd("cp $proxmox_driverdir/aic8800/etc/init.d/wlset $targetdir/etc/init.d/");
 	syscmd("chroot $targetdir update-rc.d wlset defaults") == 0 || die "unable to update-rc.d wlset\n";
 
